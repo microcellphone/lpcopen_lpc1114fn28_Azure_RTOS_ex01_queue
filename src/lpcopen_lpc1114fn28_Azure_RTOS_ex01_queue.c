@@ -70,7 +70,7 @@ CHAR    *pointer = TX_NULL;
        slice.  */
     status = tx_thread_create(&thread_1, "thread 1", thread_1_entry, 1,
             pointer, DEMO_STACK_SIZE, 
-            16, 16, 4, TX_AUTO_START);
+            16, 16, TX_NO_TIME_SLICE, TX_AUTO_START);
     if(status != TX_SUCCESS) while(1);
 
     /* Allocate the stack for thread 2.  */
@@ -79,7 +79,7 @@ CHAR    *pointer = TX_NULL;
 
     status = tx_thread_create(&thread_2, "thread 2", thread_2_entry, 2,
             pointer, DEMO_STACK_SIZE, 
-            8, 8, 4, TX_AUTO_START);
+            8, 8, TX_NO_TIME_SLICE, TX_AUTO_START);
     if(status != TX_SUCCESS) while(1);
 
     /* Allocate the message queue.  */
@@ -145,14 +145,15 @@ void    thread_2_entry(ULONG thread_input)
 
     /* This thread retrieves messages placed on the queue by thread 1.  */
     while(1) {
-        /* Increment the thread counter.  */
-        thread_2_counter++;
         /* Retrieve a message from the queue.  */
         status = tx_queue_receive(&queue_2, &received_message, TX_WAIT_FOREVER);
         /* Check completion status and make sure the message is what we expected.  */
         if ((status != TX_SUCCESS) || (received_message != thread_2_messages_received)) while(1);
         /* Otherwise, all is okay.  Increment the received message count.  */
         thread_2_messages_received++;
+
+        /* Increment the thread counter.  */
+        thread_2_counter++;
 
         /* Send message to queue 1.  */
         status =  tx_queue_send(&queue_1, &thread_2_messages_sent, TX_WAIT_FOREVER);
